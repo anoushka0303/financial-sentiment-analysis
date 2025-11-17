@@ -1,0 +1,14 @@
+yfinance
+transformers
+torch
+pandas
+numpy
+scikit-learn
+chromadb
+sentence-transformers
+openai
+python-dotenv
+requests
+feedparser
+tqdm
+datasets
