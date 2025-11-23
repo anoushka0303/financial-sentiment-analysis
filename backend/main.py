@@ -132,31 +132,24 @@ async def get_companies():
 
 @app.post("/api/analyze", response_model=AnalysisResponse)
 async def analyze_query(request: QueryRequest):
-    """
-    Analyze user query and return financial analysis
-    """
     try:
-        # Determine company if not provided
         if request.company:
             company = request.company.upper() + ".NS" if not request.company.endswith('.NS') else request.company
         else:
             company = extract_company_from_query(request.query)
-        
-        # Validate company
+
         if not validate_company(company):
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail=f"Company {company} not supported. Available: {[t.split('.')[0] for t in TICKERS]}"
             )
-        
-        # Check cache for existing analysis
+
         cache_key = f"{company}:{request.query[:50]}"
         if cache_key in analysis_cache:
             cached_result = analysis_cache[cache_key]
             logger.info(f"Returning cached analysis for {company}")
             return AnalysisResponse(**cached_result)
-        
-        # Run analysis (this is the main pipeline)
+
         logger.info(f"Running analysis for {company}")
         analysis_data = summarize_financial_data(company)
 
@@ -165,17 +158,16 @@ async def analyze_query(request: QueryRequest):
             "company": company,
             "analysis_result": analysis_data['analysis_result'],
             "timestamp": datetime.now(),
-            "confidence": 0.85,  # This would be calculated based on data quality
+            "confidence": 0.85,
             "predicted_price": analysis_data['predicted_price'],
             "current_price": analysis_data['current_price'],
             "sentiment_score": analysis_data['sentiment_score']
         }
-        
-        # Cache the result
+
         analysis_cache[cache_key] = response_data
 
         return AnalysisResponse(**response_data)
-        
+
     except Exception as e:
         logger.error(f"Error in analysis: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")

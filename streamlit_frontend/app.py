@@ -5,7 +5,6 @@ BASE_URL = "http://127.0.0.1:8000"
 
 st.set_page_config(page_title="Financial Sentiment Analysis", page_icon="📈")
 
-# Custom CSS for better styling
 st.markdown("""
 <style>
     .main-header {
@@ -27,7 +26,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Sidebar for authentication
 with st.sidebar:
     st.header("🔐 Authentication")
     st.markdown("---")
@@ -53,7 +51,6 @@ except Exception as e:
     st.error(f"Error: {e}")
     company_options = {}
 
-# Create two columns for input
 col1, col2 = st.columns(2)
 
 with col1:
@@ -64,7 +61,6 @@ with col2:
 
 selected_ticker = company_options.get(selected_company_display, "")
 
-# Analyze button
 if st.button("🚀 Analyze", type="primary"):
     if query and selected_ticker:
         payload = {
@@ -78,7 +74,6 @@ if st.button("🚀 Analyze", type="primary"):
                 result = response.json()
                 st.success("✅ Analysis completed successfully!")
 
-                # Display results in a styled box
                 with st.container():
                     st.markdown('<div class="result-box">', unsafe_allow_html=True)
                     st.markdown(f"**🔍 Query:** {result['query']}")

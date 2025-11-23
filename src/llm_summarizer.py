@@ -22,17 +22,15 @@ from openai import OpenAI
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 def get_latest_stock_data(company, days=30):
-    """Get latest stock data using yfinance"""
     try:
         ticker = yf.Ticker(company)
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
-        
+
         data = ticker.history(start=start_date, end=end_date, interval='1d')
         data.reset_index(inplace=True)
         data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')
-        
-        # Add sentiment column based on recent news analysis
+
         try:
             news_texts, _ = get_recent_news(company, n_results=5)
             sentiment_results = analyze_sentiment_with_finbert(news_texts)
@@ -41,8 +39,8 @@ def get_latest_stock_data(company, days=30):
             print(f"Error getting sentiment for {company}: {e}")
             sentiment_score = 0.0
         data['sentiment'] = sentiment_score
-        
-        return data.tail(10)  # Return last 10 days for prediction
+
+        return data.tail(10)
     except Exception as e:
         print(f"Error fetching data for {company}: {e}")
         return pd.DataFrame()
@@ -231,42 +229,34 @@ def load_stock_model(company):
         return None, None, None, None
 
 def predict_stock_price(company, recent_features):
-    """Predict stock price using the trained model"""
     try:
         model, scaler, device = load_stock_model(company)
         if model is None:
             return None
 
-        # Prepare features (only 4: Open, High, Low, Volume)
         features_only = []
         for feat in recent_features:
             if isinstance(feat, dict):
                 row = [feat['Open'], feat['High'], feat['Low'], feat['Volume']]
             else:
-                row = feat[:4]  # Take only first 4 features
+                row = feat[:4]
             features_only.append(row)
 
-        # Normalize using the loaded scaler (scaler expects 5 features: 4 + target)
-        features_array = np.array(features_only)  # (n, 4)
-        # Add dummy target column for scaler compatibility
-        dummy_features = np.column_stack([features_array, np.zeros(len(features_array))])  # (n, 5)
-        features_normalized = scaler.transform(dummy_features)  # (n, 5)
-        # Take only the 4 feature columns for LSTM input
-        features_for_lstm = features_normalized[:, :4]  # (n, 4)
+        features_array = np.array(features_only)
+        dummy_features = np.column_stack([features_array, np.zeros(len(features_array))])
+        features_normalized = scaler.transform(dummy_features)
+        features_for_lstm = features_normalized[:, :4]
 
-        # Convert to tensor
         seq_tensor = torch.tensor(features_for_lstm, dtype=torch.float).unsqueeze(0).to(device)
 
         with torch.no_grad():
             prediction = model(seq_tensor)
 
-        # Inverse transform the prediction
-        # We need to create a dummy array with the same shape as training data
-        dummy_array = np.zeros((1, 5))  # 5 columns (4 features + target)
-        dummy_array[0, -1] = prediction.item()  # Put prediction in target column
+        dummy_array = np.zeros((1, 5))
+        dummy_array[0, -1] = prediction.item()
         denormalized = scaler.inverse_transform(dummy_array)
 
-        return denormalized[0, -1]  # Return the predicted price
+        return denormalized[0, -1]
     except Exception as e:
         print(f"Error predicting stock price: {e}")
         return None
@@ -285,14 +275,9 @@ def prepare_prediction_features(stock_data):
     return features
 
 def summarize_financial_data(company, query_date=None):
-    """
-    Enhanced financial data summarization with yfinance, prediction, and sentiment analysis
-    Returns a dict with analysis text and structured data
-    """
     try:
         company_name = ticker_to_company.get(company, company)
 
-        # 1. Get latest stock data using yfinance
         print(f"Fetching latest stock data for {company}...")
         stock_data = get_latest_stock_data(company, days=30)
         if stock_data.empty:
@@ -306,34 +291,27 @@ def summarize_financial_data(company, query_date=None):
         latest_stock = stock_data.iloc[-1]
         current_price = float(latest_stock['Close'])
 
-        # 2. Get recent news articles from vector DB
         print(f"Retrieving recent news for {company}...")
         news_texts, news_metadatas = get_recent_news(company, n_results=5)
 
-        # 3. Analyze sentiment of news articles
         print("Analyzing sentiment of news articles...")
         sentiment_results = analyze_sentiment_with_finbert(news_texts)
 
-        # 4. Prepare features and predict stock price
         print("Predicting stock price...")
         recent_features = prepare_prediction_features(stock_data.tail(10))
 
-        # Try using the stock prediction model
         try:
             predicted_price = predict_stock_price(company, recent_features)
             if predicted_price is None:
-                # Simple fallback: trend-based prediction
-                recent_prices = [row[0] for row in recent_features]  # Close prices (using Open as proxy)
+                recent_prices = [row[0] for row in recent_features]
                 avg_price = sum(recent_prices) / len(recent_prices)
                 predicted_price = avg_price + (sentiment_results['average_score'] * avg_price * 0.02)
         except Exception as e:
             print(f"Error in stock prediction: {e}")
-            # Simple fallback: trend-based prediction
-            recent_prices = [row[0] for row in recent_features]  # Close prices (using Open as proxy)
+            recent_prices = [row[0] for row in recent_features]
             avg_price = sum(recent_prices) / len(recent_prices)
             predicted_price = avg_price + (sentiment_results['average_score'] * avg_price * 0.02)
 
-        # 5. Generate comprehensive prompt for LLM
         news_summary = ""
         if news_texts:
             news_summary = "\n".join([f"• {text[:200]}..." for text in news_texts[:3]])
@@ -384,7 +362,6 @@ Sentiment Analysis:
         Focus on data-driven insights and practical investment guidance.
         """
 
-        # 6. Get LLM response using new OpenAI API
         response = client.chat.completions.create(
             model=LLM_MODEL,
             messages=[

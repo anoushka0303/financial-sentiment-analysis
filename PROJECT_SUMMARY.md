@@ -1,58 +1,65 @@
-# Financial Analysis Chatbot - Complete System
+# Financial Analysis System - Complete Implementation
 
-## 🏗️ System Architecture
+## System Architecture
 
 ### Backend (FastAPI)
-- **Location**: `/backend/`
-- **Port**: 8000
-- **Features**: 
+- Location: /backend/
+- Port: 8000
+- Features:
   - RESTful API with authentication
   - Integration with financial analysis pipeline
-  - Chat session management
   - Real-time stock data via yfinance
   - News retrieval from vector database
   - Sentiment analysis and price prediction
 
-### Frontend (React + Vite)
-- **Location**: `/frontend/`
-- **Port**: 3000
-- **Features**:
-  - Modern chat interface
-  - Dark/light mode support
-  - Real-time messaging
-  - Company selection
+### Frontend (Streamlit)
+- Location: /streamlit_frontend/
+- Port: 8501
+- Features:
+  - Web-based analysis interface
+  - Company selection and query input
+  - Real-time analysis results
+  - Authentication placeholders
   - Responsive design
 
 ### Financial Analysis Pipeline
-- **Location**: `/src/`
-- **Components**:
+- Location: /src/
+- Components:
   - yfinance integration for real-time data
   - LSTM models for price prediction
   - FinBERT for sentiment analysis
   - OpenAI GPT for comprehensive analysis
   - ChromaDB for news retrieval
 
-## 🚀 Quick Start
+## Quick Start
+
+### Prerequisites
+- Python 3.8+
+- OpenAI API key
+- News API key (optional)
 
 ### Backend Setup
 ```bash
 cd backend
 pip install -r requirements.txt
+# Set OPENAI_API_KEY in .env file
 python main.py
 ```
 
 ### Frontend Setup
 ```bash
-cd frontend
-npm install
-npm run dev
+cd streamlit_frontend
+pip install -r requirements.txt
+streamlit run app.py
 ```
 
-### Demo Login
-- **Username**: demo
-- **Password**: demo
+### Data Setup
+```bash
+# Populate vector database
+python src/vector_db_setup.py
+```
 
-## 📊 Supported Companies
+## Supported Companies
 - RELIANCE.NS (Reliance Industries)
 - HDFCBANK.NS (HDFC Bank)  
 - TCS.NS (Tata Consultancy Services)
@@ -64,42 +71,40 @@ npm run dev
 - BHARTIARTL.NS (Bharti Airtel)
 - LICI.NS (Life Insurance Corporation)
 
-## 🔧 API Endpoints
+## API Endpoints
 
 ### Authentication
-- `POST /auth/login` - User login
-- `POST /auth/register` - User registration
-- `GET /auth/me` - Get current user
+- POST /auth/login - User login
+- POST /auth/register - User registration
+- GET /auth/me - Get current user
 
 ### Analysis
-- `POST /api/analyze` - Analyze financial query
-- `GET /api/companies` - List available companies
-- `POST /api/chat` - Chat interface
+- POST /api/analyze - Analyze financial query
+- GET /api/companies - List available companies
 
 ### System
-- `GET /health` - Health check
-- `GET /api/analytics/dashboard` - Dashboard data
+- GET /health - Health check
+- GET /api/analytics/dashboard - Dashboard data
 
-## 🎯 Key Features
+## Key Features
 
-1. **Real-time Stock Analysis**: Live data from yfinance
-2. **News Sentiment Analysis**: FinBERT + rule-based fallback
-3. **Price Prediction**: LSTM neural networks
-4. **AI-Powered Insights**: OpenAI GPT integration
-5. **Modern Web Interface**: React with Tailwind CSS
-6. **Session Management**: Persistent chat history
-7. **Authentication**: JWT-based security
-8. **Responsive Design**: Mobile-friendly interface
+1. Real-time Stock Analysis: Live data from yfinance
+2. News Sentiment Analysis: FinBERT + rule-based fallback
+3. Price Prediction: LSTM neural networks
+4. AI-Powered Insights: OpenAI GPT integration
+5. Web Interface: Streamlit-based analysis tool
+6. Authentication: JWT-based security
+7. Responsive Design: Mobile-friendly interface
 
-## 🔄 Analysis Pipeline
+## Analysis Pipeline
 
 ```
-User Query → Company Detection → Stock Data (yfinance) 
-→ News Retrieval (ChromaDB) → Sentiment Analysis (FinBERT) 
+User Query → Company Detection → Stock Data (yfinance)
+→ News Retrieval (ChromaDB) → Sentiment Analysis (FinBERT)
 → Price Prediction (LSTM) → AI Analysis (GPT) → Response
 ```
 
-## 🛡️ Security Features
+## Security Features
 
 - JWT authentication
 - Password hashing (bcrypt)
@@ -108,16 +113,7 @@ User Query → Company Detection → Stock Data (yfinance)
 - CORS protection
 - Error handling
 
-## 📱 User Experience
-
-- Intuitive chat interface
-- Real-time typing indicators
-- Loading states and error messages
-- Company selection dropdown
-- Chat history persistence
-- Professional dark/light themes
-
-## 🚀 Production Ready
+## Production Ready
 
 - Scalable architecture
 - Proper error handling
@@ -126,4 +122,4 @@ User Query → Company Detection → Stock Data (yfinance)
 - Comprehensive documentation
 - Environment configuration
 
-This system provides a complete, production-ready financial analysis chatbot with modern web technologies and robust AI capabilities.
+This system provides a complete, production-ready financial analysis platform with modern web technologies and robust AI capabilities.

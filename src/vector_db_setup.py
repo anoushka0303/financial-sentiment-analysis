@@ -11,7 +11,6 @@ ticker_to_company = dict(zip(TICKERS, COMPANIES))
 def setup_vector_db():
     client = chromadb.PersistentClient(path=VECTOR_DB_PATH)
 
-    # Delete existing collection if it exists to ensure fresh population
     try:
         client.delete_collection(name=COLLECTION_NAME)
         print("Deleted existing collection.")
@@ -20,7 +19,6 @@ def setup_vector_db():
 
     collection = client.create_collection(name=COLLECTION_NAME)
 
-    # Load news data
     news_file = os.path.join(DATA_DIR, 'news.csv')
     if not os.path.exists(news_file):
         print(f"News file not found: {news_file}")
@@ -29,17 +27,14 @@ def setup_vector_db():
     df = pd.read_csv(news_file)
     print(f"Loaded {len(df)} news articles.")
 
-    # Initialize embedding model
     embed_model = SentenceTransformer(EMBEDDING_MODEL)
 
-    # Prepare data for insertion
     documents = []
     metadatas = []
     ids = []
 
     for idx, row in df.iterrows():
         text = f"{row['title']} {row['description']} {row['content']}"
-        # Map ticker to company name for consistent querying
         company_name = ticker_to_company.get(row['company'], row['company'])
         metadata = {
             'company': company_name,
@@ -51,11 +46,9 @@ def setup_vector_db():
         metadatas.append(metadata)
         ids.append(f"news_{idx}")
 
-    # Generate embeddings
     print("Generating embeddings...")
     embeddings = embed_model.encode(documents).tolist()
 
-    # Add to collection in batches
     batch_size = 100
     for i in range(0, len(documents), batch_size):
         end_idx = min(i + batch_size, len(documents))

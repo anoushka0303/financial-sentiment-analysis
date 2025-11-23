@@ -1,6 +1,6 @@
-# Financial Analysis Chatbot API
+# Financial Analysis API
 
-AI-powered financial analysis and stock prediction system with chatbot interface.
+AI-powered financial analysis and stock prediction system.
 
 ## Features
 
@@ -10,7 +10,7 @@ AI-powered financial analysis and stock prediction system with chatbot interface
 - Vector database for news retrieval
 - OpenAI GPT integration for analysis
 - User authentication and session management
-- Chat history and analytics
+- Analysis caching and analytics
 
 ## Setup
 
@@ -45,11 +45,6 @@ The API will be available at `http://localhost:8000`
 - `GET /health` - System health status
 - `GET /api/companies` - List available companies
 - `POST /api/analyze` - Analyze financial query
-- `POST /api/chat` - Chat interface
-
-### Chat Management
-- `GET /api/chat/history/{session_id}` - Get chat history
-- `DELETE /api/chat/history/{session_id}` - Clear chat history
 
 ### Analytics
 - `GET /api/analytics/dashboard` - Dashboard data
