@@ -158,20 +158,17 @@ async def analyze_query(request: QueryRequest):
         
         # Run analysis (this is the main pipeline)
         logger.info(f"Running analysis for {company}")
-        analysis_result = summarize_financial_data(company)
-        
-        # Parse basic metrics from the analysis (in real implementation, extract structured data)
-        # For demo, we'll return the full analysis as text
-        
+        analysis_data = summarize_financial_data(company)
+
         response_data = {
             "query": request.query,
             "company": company,
-            "analysis_result": analysis_result,
+            "analysis_result": analysis_data['analysis_result'],
             "timestamp": datetime.now(),
             "confidence": 0.85,  # This would be calculated based on data quality
-            "predicted_price": None,  # Extract from analysis if available
-            "current_price": None,    # Extract from analysis if available
-            "sentiment_score": None   # Extract from analysis if available
+            "predicted_price": analysis_data['predicted_price'],
+            "current_price": analysis_data['current_price'],
+            "sentiment_score": analysis_data['sentiment_score']
         }
         
         # Cache the result
