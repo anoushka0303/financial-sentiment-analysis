@@ -1,8 +1,10 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import pandas as pd
-from config import FINBERT_MODEL, DATA_DIR
 import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from config import FINBERT_MODEL, DATA_DIR
 
 def analyze_sentiment():
     tokenizer = AutoTokenizer.from_pretrained(FINBERT_MODEL)

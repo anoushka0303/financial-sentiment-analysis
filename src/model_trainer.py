@@ -8,7 +8,7 @@ from sklearn.metrics import mean_squared_error
 import numpy as np
 import os
 import sys
-sys.path.append('..')
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from config import FINBERT_MODEL, DATA_DIR, COMPANIES, TICKERS
 
 class SentimentDataset(Dataset):
@@ -138,7 +138,7 @@ def train_stock_models():
         if len(company_df) < seq_len + 1:
             continue
 
-        # Normalize features per company
+        # Normalize features per company (keep target scaling within same scaler for compatibility)
         from sklearn.preprocessing import MinMaxScaler
         scaler = MinMaxScaler()
         company_df[features + [target]] = scaler.fit_transform(company_df[features + [target]])
@@ -200,7 +200,7 @@ def train_stock_models():
 
         os.makedirs('models', exist_ok=True)
         torch.save(model.state_dict(), f'models/{company}_stock_model.pth')
-        # Optionally save the scaler for inverse transform
+        # Save the scaler for inverse transform
         import joblib
         joblib.dump(scaler, f'models/{company}_scaler.pkl')
 

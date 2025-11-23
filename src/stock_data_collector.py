@@ -1,7 +1,9 @@
 import yfinance as yf
 import pandas as pd
-from config import TICKERS, COMPANIES, START_DATE, END_DATE, PERIOD, DATA_DIR
 import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from config import TICKERS, COMPANIES, START_DATE, END_DATE, PERIOD, DATA_DIR
 
 def collect_stock_data():
     all_data = []

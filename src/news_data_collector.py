@@ -1,5 +1,7 @@
 import pandas as pd
 import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from dotenv import load_dotenv
 from config import DATA_DIR, START_DATE, END_DATE
 
