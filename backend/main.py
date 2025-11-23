@@ -64,10 +64,6 @@ class AnalysisResponse(BaseModel):
     current_price: Optional[float] = None
     sentiment_score: Optional[float] = None
 
-class ChatHistory(BaseModel):
-    session_id: str
-    messages: List[Dict[str, Any]]
-
 class HealthResponse(BaseModel):
     status: str
     timestamp: datetime
@@ -75,7 +71,6 @@ class HealthResponse(BaseModel):
     available_companies: List[str]
 
 # In-memory storage for demo (replace with PostgreSQL later)
-chat_sessions = {}
 analysis_cache = {}
 
 def extract_company_from_query(query: str) -> str:
@@ -99,16 +94,6 @@ def extract_company_from_query(query: str) -> str:
 def validate_company(company: str) -> bool:
     """Validate if the company ticker is supported"""
     return company in TICKERS
-
-async def get_current_session(session_id: str):
-    """Get or create chat session"""
-    if session_id not in chat_sessions:
-        chat_sessions[session_id] = {
-            'id': session_id,
-            'created_at': datetime.now(),
-            'messages': []
-        }
-    return chat_sessions[session_id]
 
 # API Endpoints
 
@@ -191,89 +176,19 @@ async def analyze_query(request: QueryRequest):
         
         # Cache the result
         analysis_cache[cache_key] = response_data
-        
-        # Store in session history
-        session_id = request.session_id or "default"
-        session = await get_current_session(session_id)
-        session['messages'].append({
-            "type": "query",
-            "query": request.query,
-            "company": company,
-            "response": analysis_result,
-            "timestamp": datetime.now()
-        })
-        
+
         return AnalysisResponse(**response_data)
         
     except Exception as e:
         logger.error(f"Error in analysis: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
-@app.post("/api/chat", response_model=ChatHistory)
-async def chat_message(request: dict):
-    """
-    Handle chat messages with conversation context
-    """
-    try:
-        session_id = request.get("session_id", "default")
-        message = request.get("message", "")
-        
-        # Get or create session
-        session = await get_current_session(session_id)
-        
-        # Analyze the message
-        query_request = QueryRequest(
-            query=message,
-            session_id=session_id
-        )
-        
-        # Get analysis
-        analysis_response = await analyze_query(query_request)
-        
-        # Add to session
-        session['messages'].append({
-            "type": "user",
-            "message": message,
-            "timestamp": datetime.now()
-        })
-        
-        session['messages'].append({
-            "type": "assistant", 
-            "analysis": analysis_response.analysis_result,
-            "timestamp": datetime.now()
-        })
-        
-        return ChatHistory(
-            session_id=session_id,
-            messages=session['messages']
-        )
-        
-    except Exception as e:
-        logger.error(f"Error in chat: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
-
-@app.get("/api/chat/history/{session_id}", response_model=ChatHistory)
-async def get_chat_history(session_id: str):
-    """Get chat history for a session"""
-    session = await get_current_session(session_id)
-    return ChatHistory(
-        session_id=session_id,
-        messages=session['messages']
-    )
-
-@app.delete("/api/chat/history/{session_id}")
-async def clear_chat_history(session_id: str):
-    """Clear chat history for a session"""
-    if session_id in chat_sessions:
-        chat_sessions[session_id]['messages'] = []
-    return {"message": "Chat history cleared"}
-
 @app.get("/api/analytics/dashboard")
 async def get_dashboard_data():
     """Get dashboard analytics (placeholder)"""
     return {
         "total_queries": len(analysis_cache),
-        "active_sessions": len(chat_sessions),
+        "cached_analyses": len(analysis_cache),
         "popular_companies": [
             {"ticker": "RELIANCE.NS", "queries": 15},
             {"ticker": "TCS.NS", "queries": 12},
